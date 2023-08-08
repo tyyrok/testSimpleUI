@@ -1,5 +1,5 @@
-#from pony.orm import Database,Required,Set,select,commit,Optional,Json
-from pony.orm import *
+from pony.orm import Database,Required,Set,select,commit,Optional,Json
+#from pony.orm import *
 from pony.orm.core import db_session
 import time, datetime
 import json
@@ -82,7 +82,8 @@ def on_start_birds_list(hashMap, _files=None, _data=None):
                             "NoRefresh": False,
                             "document_type": "",
                             "mask": "",
-                            "Variable": ""
+                            "Variable": "",
+                            "TextSize": "16",
                         },
                         {
                             "type": "TextView",
@@ -91,7 +92,8 @@ def on_start_birds_list(hashMap, _files=None, _data=None):
                             "NoRefresh": False,
                             "document_type": "",
                             "mask": "",
-                            "Variable": ""
+                            "Variable": "",
+                            "TextSize": "16",
                         },
                         {
                             "type": "TextView",
@@ -100,7 +102,9 @@ def on_start_birds_list(hashMap, _files=None, _data=None):
                             "NoRefresh": False,
                             "document_type": "",
                             "mask": "",
-                            "Variable": ""
+                            "Variable": "",
+                            "TextSize": "16",
+             
                         }]
                     
                     },]
@@ -111,6 +115,7 @@ def on_start_birds_list(hashMap, _files=None, _data=None):
                     "height": "wrap_content",
                     "width": "match_parent",
                     "weight": "1",
+                    
                     "Elements": [{
                                 "type": "Button",
                                 "show_by_condition": "",
@@ -176,11 +181,26 @@ def on_save_new_bird(hashMap, _files=None, _data=None):
     
     if hashMap.get("listener") == "btn_create_bird":
 
-        photo = {}
-        photo['photo'] = json.loads(hashMap.get("photo_gallery"))
+        if hashMap.get("name") == "":
+            hashMap.put("toast", "Введите имя птицы!")
+            
+            return hashMap
         
-        Birds(name=str(hashMap.get("name")), photo=photo, color=str(hashMap.get("color")))
-        commit()
+        if not hashMap.containsKey("color"):
+            hashMap.put("toast", "Выберите цвет перьев!")
+            
+            return hashMap
+        
+        photo = {}
+        if hashMap.containsKey("photo_gallery"):
+            photo['photo'] = json.loads(hashMap.get("photo_gallery"))
+            Birds(name=str(hashMap.get("name")), photo=photo, color=hashMap.get("color"))
+        else:
+            Birds(name=str(hashMap.get("name")), color=hashMap.get("color"))
+
+        hashMap.remove("photo_gallery")
+        hashMap.remove("color")
+        hashMap.remove("name")
         hashMap.put("ShowScreen","Birds list")
         
     elif hashMap.get("listener") == "photo":
@@ -198,6 +218,9 @@ def on_start_new_bird(hashMap,_files=None,_data=None):
     hashMap.put("mm_compression","70")
     hashMap.put("mm_size","65")
     
+    if hashMap.get("name") == None:
+        hashMap.put("name","")
+    
     return hashMap
     
 @db_session
@@ -209,6 +232,7 @@ def on_start_detail_view(hashMap, _files=None, _data=None):
     
     bird = Birds.get(id=id)
     name = bird.name
+    color = bird.color
     pic = ""
     if 'photo' in bird.photo:
         
@@ -224,6 +248,7 @@ def on_start_detail_view(hashMap, _files=None, _data=None):
     #hashMap.put("toast", str(pic))
     hashMap.put("name", name)
     hashMap.put("photo", pic)
+    hashMap.put("color", color)
     
     
     return hashMap
